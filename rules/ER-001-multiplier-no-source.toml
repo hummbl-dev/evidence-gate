@@ -1,0 +1,57 @@
+rule_id = "ER-001-multiplier-no-source"
+description = """
+Multiplier claims (Nx, N-times, N-fold) require a canonical-source receipt.
+External-facing claims without one are fabrication-prone.
+"""
+
+[pattern]
+kind = "regex"
+body = '\b(\d{1,4}(?:\.\d+)?)\s*(?:[x×]|times?|\-?fold)\s+(metric|inflation|growth|increase|reduction|cost|amplification|faster|slower)\b'
+flags = ["IGNORECASE"]
+
+  [[pattern.capture]]
+  name = "multiplier"
+  group = 1
+
+[severity]
+default = "WARN"
+
+  [[severity.promote_when]]
+  context = "external_facing_no_canonical_source"
+  to = "ERROR"
+
+  [[severity.demote_when]]
+  context = "marker_present_with_basis"
+  by_one_tier = true
+
+[canonical_sources]
+required = true
+policy = "must_match_with_unit"
+scope = "family.numeric"
+
+[[exceptions]]
+kind = "marker_match"
+mode = "same_line"
+basis_required = true
+
+[[fixtures.positive]]
+text = "12x metric inflation across the team"
+expects = { severity = "WARN", finding = "ER-001-multiplier-no-source" }
+
+[[fixtures.positive]]
+text = "Achieved 5x faster builds"
+surface = "hummbl-production/web/case-studies/foo.html"
+expects = { severity = "ERROR", finding = "ER-001-multiplier-no-source" }
+
+[[fixtures.positive]]
+text = "A 2-fold cost increase"
+surface = "hummbl-production/web/case-studies/foo.html"
+expects = { severity = "ERROR", finding = "ER-001-multiplier-no-source" }
+
+[[fixtures.negative]]
+text = "12x metric inflation [VERIFY: WIP_END duration delta]"
+expects = { severity = "INFO", finding = "ER-001-multiplier-no-source", reason = "marker_demote_one_tier" }
+
+[[fixtures.negative]]
+text = "We saw a 12 hour outage"
+expects = { severity = "NONE" }

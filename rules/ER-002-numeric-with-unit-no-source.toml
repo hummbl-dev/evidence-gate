@@ -1,0 +1,66 @@
+rule_id = "ER-002-numeric-with-unit-no-source"
+description = """
+Large numeric claims with operational units require a source receipt.
+Small generic counts are ignored by the runtime extractor.
+"""
+
+[pattern]
+kind = "regex"
+body = '\b(\d{1,3}(?:,\d{3})+|\d{3,})\+?\s+(governance events|policy violations|tests|messages|agents|sessions|prompts|fabricated)\b'
+flags = ["IGNORECASE"]
+
+  [[pattern.capture]]
+  name = "number"
+  group = 1
+
+  [[pattern.capture]]
+  name = "unit"
+  group = 2
+
+[severity]
+default = "WARN"
+
+  # P3 alignment with ER-006 (claude-code Stage-3 review 2026-05-08T19:12Z):
+  # Phantom "70,000+ governance events" on an external case study is the same
+  # severity class as a phantom "73%". External-facing without source must
+  # escalate to ERROR — symmetric severity contract across numeric+unit and
+  # exact-percent rules.
+  [[severity.promote_when]]
+  context = "external_facing_no_canonical_source"
+  to = "ERROR"
+
+  [[severity.demote_when]]
+  context = "marker_present_with_basis"
+  by_one_tier = true
+
+[canonical_sources]
+required = true
+policy = "must_match_with_unit"
+scope = "family.numeric"
+
+[[exceptions]]
+kind = "marker_match"
+mode = "same_line"
+basis_required = true
+
+[[fixtures.positive]]
+text = "146,000+ governance events"
+expects = { severity = "WARN", finding = "ER-002-numeric-with-unit-no-source" }
+
+[[fixtures.positive]]
+text = "70,000+ messages"
+expects = { severity = "WARN", finding = "ER-002-numeric-with-unit-no-source" }
+
+# Locks in the P3 alignment with ER-006: external surface + no source = ERROR
+[[fixtures.positive]]
+text = "146,000+ governance events"
+surface = "hummbl-production/web/case-studies/foo.html"
+expects = { severity = "ERROR", finding = "ER-002-numeric-with-unit-no-source", reason = "external_facing_no_canonical_source" }
+
+[[fixtures.negative]]
+text = "999,000+ governance events [VERIFY: bus tail wc -l]"
+expects = { severity = "INFO", finding = "ER-002-numeric-with-unit-no-source", reason = "marker_demote_one_tier" }
+
+[[fixtures.negative]]
+text = "2 sessions"
+expects = { severity = "NONE" }

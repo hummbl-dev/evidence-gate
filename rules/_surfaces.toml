@@ -1,0 +1,29 @@
+[[roots]]
+env = "HUMMBL_PRODUCTION_ROOT"
+
+[[roots]]
+relative_to_self = "../../hummbl-production"
+
+[[roots]]
+discover = { nearest_ancestor_with = "hummbl-production/.git" }
+
+[surfaces]
+external = [
+  "hummbl-production/web/**/*.html",
+  "hummbl-production/brand/**/*.html",
+  "hummbl-production/web/case-studies/**/*.md",
+  "hummbl-production/decks/**/*.md",
+]
+internal = [
+  "hummbl-production/_internal/**",
+  "hummbl-production/scripts/**",
+]
+case_studies_corpus = [
+  "hummbl-production/web/case-studies/**/*.html",
+  "hummbl-production/web/case-studies/cases.json",
+]
+canonical_corpus = [
+  "hummbl-production/_internal/canonical-claims/**/*.md",
+  "hummbl-production/_internal/canonical-claims/**/*.txt",
+]
+

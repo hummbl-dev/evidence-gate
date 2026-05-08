@@ -1,0 +1,36 @@
+rule_id = "ER-007-dated-incident"
+description = "Specific ISO dates in incident prose should be source-verifiable."
+
+[pattern]
+kind = "regex"
+body = '\b(20\d{2}-\d{2}-\d{2})\b'
+
+  [[pattern.capture]]
+  name = "date"
+  group = 1
+
+[severity]
+default = "INFO"
+
+  [[severity.promote_when]]
+  context = "external_facing_no_canonical_source"
+  to = "WARN"
+
+[canonical_sources]
+required = true
+policy = "must_match_anywhere"
+scope = "roots.repo"
+# Stage-3 review P2 fix (claude-code 2026-05-08T19:12Z): scope was 'family.date'
+# but _families.toml has no [date] family. Per v0.3 schema L3 fail-closed,
+# the third-PR find_claims rewrite would error a missing-family reference.
+# Switched to 'roots.repo' to match ER-003 semantics: dates are
+# roots-against-text matching, not family-tag classification.
+
+[[fixtures.positive]]
+text = "The AIP began on 2026-04-11."
+expects = { severity = "INFO", finding = "ER-007-dated-incident" }
+
+[[fixtures.negative]]
+text = "Version 2026.04 is not an ISO date."
+expects = { severity = "NONE" }
+

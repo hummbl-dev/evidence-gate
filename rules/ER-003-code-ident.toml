@@ -1,0 +1,34 @@
+rule_id = "ER-003-code-ident"
+description = """
+Named code identifiers, agent handles, files, and call-like references in
+case-study prose must resolve in canonical sources or the repository.
+"""
+
+[pattern]
+kind = "regex"
+body = '<code>([A-Za-z][^<]{1,50})</code>|`([A-Za-z][^`]{1,50})`|\b([A-Za-z][A-Za-z0-9_]+\.(?:py|ts|tsx|js|jsx|md))\b|\b([A-Za-z][A-Za-z0-9_]{2,}\([^)]*\))'
+
+[severity]
+default = "INFO"
+
+  [[severity.promote_when]]
+  context = "external_facing_no_canonical_source"
+  to = "WARN"
+
+[canonical_sources]
+required = true
+policy = "must_match_anywhere"
+scope = "roots.repo"
+
+[[fixtures.positive]]
+text = "The <code>gemini</code> agent violated the identity rule."
+expects = { severity = "INFO", finding = "ER-003-code-ident" }
+
+[[fixtures.positive]]
+text = "The helper lives in scripts/rule_loader.py."
+expects = { severity = "INFO", finding = "ER-003-code-ident" }
+
+[[fixtures.negative]]
+text = "HUMMBL is the company name, not a code identifier."
+expects = { severity = "NONE" }
+

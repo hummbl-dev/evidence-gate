@@ -1,0 +1,86 @@
+rule_id = "ER-008-broccolilly-tuple"
+description = """
+Broccolilly load factor mentions must use the canonical S*T*I*C*D tuple.
+The loader classifies canonical, reordered, missing, and misnamed variants.
+"""
+
+[pattern]
+kind = "compound"
+
+  [[pattern.any_of]]
+  branch_id = "five_token"
+  regex = '\b([A-Za-z]{1,16})\s*\*\s*([A-Za-z]{1,16})\s*\*\s*([A-Za-z]{1,16})\s*\*\s*([A-Za-z]{1,16})\s*\*\s*([A-Za-z]{1,16})\b'
+  emit_context = "five_token"
+
+    [[pattern.any_of.capture]]
+    name = "f1"
+    group = 1
+    [[pattern.any_of.capture]]
+    name = "f2"
+    group = 2
+    [[pattern.any_of.capture]]
+    name = "f3"
+    group = 3
+    [[pattern.any_of.capture]]
+    name = "f4"
+    group = 4
+    [[pattern.any_of.capture]]
+    name = "f5"
+    group = 5
+
+  [[pattern.any_of]]
+  branch_id = "four_token"
+  regex = '\b([A-Za-z]{1,16})\s*\*\s*([A-Za-z]{1,16})\s*\*\s*([A-Za-z]{1,16})\s*\*\s*([A-Za-z]{1,16})\b'
+  emit_context = "four_token"
+
+    [[pattern.any_of.capture]]
+    name = "f1"
+    group = 1
+    [[pattern.any_of.capture]]
+    name = "f2"
+    group = 2
+    [[pattern.any_of.capture]]
+    name = "f3"
+    group = 3
+    [[pattern.any_of.capture]]
+    name = "f4"
+    group = 4
+
+[severity]
+default = "WARN"
+
+[canonical_sources]
+required = false
+policy = "none"
+
+[[fixtures.positive]]
+text = "Cognitive load = S*T*I*C*D (canonical)"
+expects = { severity = "INFO", finding = "ER-008-broccolilly-tuple", classify = "canonical" }
+
+[[fixtures.positive]]
+text = "Computed via S*T*C*D"
+expects = { severity = "ERROR", finding = "ER-008-broccolilly-tuple", classify = "missing", missing_factor = "I" }
+
+[[fixtures.positive]]
+text = "We use T*S*I*C*D in this paper"
+expects = { severity = "WARN", finding = "ER-008-broccolilly-tuple", classify = "reordered" }
+
+[[fixtures.positive]]
+text = "S*X*I*C*D"
+expects = { severity = "WARN", finding = "ER-008-broccolilly-tuple", classify = "misnamed", misnamed_factors = ["X"] }
+
+[[fixtures.positive]]
+text = "Sensory*Temporal*Interpersonal*Cognitive*Domain"
+expects = { severity = "INFO", finding = "ER-008-broccolilly-tuple", classify = "canonical", form = "named" }
+
+[[fixtures.positive]]
+text = "Sensory*Temporal*Cognitive*Domain"
+expects = { severity = "ERROR", finding = "ER-008-broccolilly-tuple", classify = "missing", missing_factor = "I", form = "named" }
+
+[[fixtures.negative]]
+text = "It costs $5*$10 to run the test"
+expects = { severity = "NONE" }
+
+[[fixtures.negative]]
+text = "the S * T plan"
+expects = { severity = "NONE" }

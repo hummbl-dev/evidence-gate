@@ -1,0 +1,28 @@
+rule_id = "ER-005-pr-ref"
+description = "PR number references should be explicitly visible for later repository validation."
+
+[pattern]
+kind = "regex"
+body = '\bPR\s*#(\d+)\b'
+flags = ["IGNORECASE"]
+
+  [[pattern.capture]]
+  name = "pr_number"
+  group = 1
+
+[severity]
+default = "INFO"
+
+[canonical_sources]
+required = true
+policy = "must_match_anywhere"
+scope = "roots.repo"
+
+[[fixtures.positive]]
+text = "Fixed in PR #225 after codex review."
+expects = { severity = "INFO", finding = "ER-005-pr-ref" }
+
+[[fixtures.negative]]
+text = "The price is #225 in the catalog."
+expects = { severity = "NONE" }
+

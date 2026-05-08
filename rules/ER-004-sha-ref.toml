@@ -1,0 +1,31 @@
+rule_id = "ER-004-sha-ref"
+description = "SHA-like commit references must resolve to a real commit."
+
+[pattern]
+kind = "regex"
+body = '\b(?:SHA|sha)\s*[:=]?\s*([0-9a-f]{7,40})\b'
+
+  [[pattern.capture]]
+  name = "sha"
+  group = 1
+
+[severity]
+default = "INFO"
+
+  [[severity.promote_when]]
+  context = "unresolved_sha"
+  to = "WARN"
+
+[canonical_sources]
+required = true
+policy = "git_rev_parse"
+scope = "roots.repo"
+
+[[fixtures.positive]]
+text = "Merged in SHA abc1234def5678 last week."
+expects = { severity = "INFO", finding = "ER-004-sha-ref" }
+
+[[fixtures.negative]]
+text = "The color was #abcdef and not a commit reference."
+expects = { severity = "NONE" }
+

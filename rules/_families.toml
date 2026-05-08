@@ -1,0 +1,31 @@
+[numeric]
+unit_required = true
+
+[numeric.context_tags]
+generic_count = '^[0-9]{1,2}$'
+big_round = '^(100|1000|10000)$'
+
+[percent]
+
+[percent.context_tags]
+of_orgs = '[0-9]+%\s+of\s+orgs'
+of_agents = '[0-9]+%\s+of\s+agents'
+of_teams = '[0-9]+%\s+of\s+teams'
+
+[broccolilly]
+
+[broccolilly.canonical_tuple]
+factors = ["S", "T", "I", "C", "D"]
+semantics = """
+S, T, I, C, D are distinct cognitive load dimensions per the Broccolilly
+operationalization. Order is conventional but parsing flags reorder drift.
+Missing factor changes meaning and is ERROR. Misnamed factor is WARN.
+"""
+
+[broccolilly.canonical_tuple.labels]
+S = "Sensory"
+T = "Temporal"
+I = "Interpersonal"
+C = "Cognitive"
+D = "Domain"
+

@@ -1,0 +1,60 @@
+rule_id = "ER-006-exact-percent"
+description = """
+Exact percentages embedded in prose require canonical-source receipts.
+Family percent tags are metadata and must not demote unsupported claims.
+"""
+
+[pattern]
+kind = "regex"
+body = '(?<![A-Za-z0-9.])(\d+(?:\.\d+)?)%(?![A-Za-z])'
+
+  [[pattern.capture]]
+  name = "percent"
+  group = 1
+
+[severity]
+default = "WARN"
+
+  [[severity.promote_when]]
+  context = "external_facing_no_canonical_source"
+  to = "ERROR"
+
+  [[severity.demote_when]]
+  context = "marker_present_with_basis"
+  by_one_tier = true
+
+[canonical_sources]
+required = true
+policy = "must_match_full_context"
+scope = "family.percent"
+
+[[exceptions]]
+kind = "marker_match"
+mode = "same_line"
+basis_required = true
+
+[[fixtures.positive]]
+text = "Our agents fail safely 73% of the time"
+surface = "hummbl-production/web/case-studies/foo.html"
+expects = { severity = "ERROR", finding = "ER-006-exact-percent", reason = "external_facing_no_canonical_source" }
+
+[[fixtures.positive]]
+text = "73% of orgs report governance gaps"
+surface = "hummbl-production/web/case-studies/foo.html"
+expects = { severity = "ERROR", finding = "ER-006-exact-percent", context_tags = ["family.percent.of_orgs"] }
+
+[[fixtures.positive]]
+text = "Internal observability shows 73% of runs hit the cache"
+surface = "hummbl-production/_internal/notes/cache.md"
+expects = { severity = "WARN", finding = "ER-006-exact-percent" }
+
+[[fixtures.negative]]
+text = "We saw 73% lift [VERIFY: dashboard 2026-05-01]"
+surface = "hummbl-production/web/case-studies/foo.html"
+expects = { severity = "WARN", finding = "ER-006-exact-percent", reason = "marker_demote_one_tier" }
+
+[[fixtures.negative]]
+text = "We saw 73% lift [VERIFY:]"
+surface = "hummbl-production/web/case-studies/foo.html"
+expects = { severity = "ERROR", finding = "ER-006-exact-percent", reason = "marker_basis_missing" }
+
