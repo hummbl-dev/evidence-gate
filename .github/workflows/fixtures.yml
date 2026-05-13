@@ -1,4 +1,4 @@
-name: Evidence-Gate fixtures
+name: Evidence-Gate validation
 
 on:
   pull_request:
@@ -17,7 +17,7 @@ on:
       - ".github/workflows/fixtures.yml"
 
 jobs:
-  fixtures:
+  validate:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -30,18 +30,21 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Check out hummbl-production loader dependency
-        uses: actions/checkout@v4
-        with:
-          repository: hummbl-dev/hummbl-production
-          path: hummbl-production
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Run rule fixtures
-        env:
-          HUMMBL_PRODUCTION_ROOT: ${{ github.workspace }}/hummbl-production
-        run: python scripts/run_rule_fixtures.py
+      - name: Compile fixture harness
+        run: python -m py_compile scripts/run_rule_fixtures.py
+
+      - name: Parse rule TOML files
+        shell: python
+        run: |
+          import tomllib
+          from pathlib import Path
+
+          for path in sorted(Path("rules").glob("*.toml")):
+              with path.open("rb") as handle:
+                  tomllib.load(handle)
+              print(f"parsed {path}")

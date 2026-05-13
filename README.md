@@ -78,12 +78,17 @@ No PyYAML, no third-party runtime dependencies. Loader is `tomllib` (Python
 This repository should keep CI focused on the rule contract rather than broad
 content review. The GitHub Actions posture is:
 
-- Run `scripts/run_rule_fixtures.py` on supported Python versions when rule,
-  script, schema-doc, or workflow files change.
+- Compile `scripts/run_rule_fixtures.py` and parse rule TOML files on supported
+  Python versions when rule, script, schema-doc, or workflow files change.
 - Keep the harness stdlib-only; do not add third-party CI dependencies for the
   rule library.
 - Leave adoption, source sufficiency, and publishing readiness to human or
   agent review because those are evidence judgments, not syntax checks.
+
+Full fixture execution currently depends on the private
+`hummbl-production/scripts/rule_loader.py` contract. Run it locally from a
+sibling checkout or by setting `HUMMBL_PRODUCTION_ROOT`; GitHub-hosted fixture
+execution is tracked separately in issue #4.
 
 ## Origin
 
