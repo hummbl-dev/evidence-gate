@@ -9,6 +9,8 @@ second parser.
 
 from __future__ import annotations
 
+import argparse
+import importlib
 import os
 import re
 import sys
@@ -20,7 +22,15 @@ ARB_ROOT = Path(__file__).resolve().parent.parent
 RULES_DIR = ARB_ROOT / "rules"
 
 
-def _find_hummbl_production_root() -> Path:
+def _find_hummbl_production_root(rule_loader_path: Path | None = None) -> Path | None:
+    if rule_loader_path is not None:
+        path = rule_loader_path.expanduser().resolve()
+        if path.is_file() and path.name == "rule_loader.py":
+            return path.parent.parent
+        if (path / "scripts" / "rule_loader.py").is_file():
+            return path
+        return None
+
     env = os.environ.get("HUMMBL_PRODUCTION_ROOT")
     if env:
         root = Path(env).expanduser().resolve()
@@ -29,16 +39,12 @@ def _find_hummbl_production_root() -> Path:
     sibling = (ARB_ROOT.parent / "hummbl-production").resolve()
     if (sibling / "scripts" / "rule_loader.py").is_file():
         return sibling
-    raise SystemExit(
-        "ERROR: cannot find hummbl-production/scripts/rule_loader.py; "
-        "set HUMMBL_PRODUCTION_ROOT"
-    )
+    return None
 
 
-HUMMBL_PRODUCTION_ROOT = _find_hummbl_production_root()
-sys.path.insert(0, str(HUMMBL_PRODUCTION_ROOT / "scripts"))
-
-import rule_loader  # type: ignore  # noqa: E402
+def _load_rule_loader(hummbl_production_root: Path) -> Any:
+    sys.path.insert(0, str(hummbl_production_root / "scripts"))
+    return importlib.import_module("rule_loader")
 
 
 VERIFY_WITH_BASIS_RE = re.compile(r"\[VERIFY:\s*[^\]\s][^\]]*\]", re.IGNORECASE)
@@ -53,7 +59,7 @@ def _surface_context(surface: str | None) -> set[str]:
     return set()
 
 
-def _family_contexts(loaded: rule_loader.LoadedRules, text: str) -> set[str]:
+def _family_contexts(loaded: Any, text: str) -> set[str]:
     contexts: set[str] = set()
     for family_name, family in loaded.families.items():
         for tag, pattern in family.context_tags.items():
@@ -62,7 +68,7 @@ def _family_contexts(loaded: rule_loader.LoadedRules, text: str) -> set[str]:
     return contexts
 
 
-def _regex_match(rule: rule_loader.Rule, text: str) -> re.Match[str] | None:
+def _regex_match(rule: Any, text: str) -> re.Match[str] | None:
     if rule.pattern.kind == "phrase":
         body = rule.pattern.body or ""
         return re.search(re.escape(body), text)
@@ -74,9 +80,9 @@ def _regex_match(rule: rule_loader.Rule, text: str) -> re.Match[str] | None:
 
 
 def _compound_match(
-    rule: rule_loader.Rule,
+    rule: Any,
     text: str,
-) -> tuple[re.Match[str], rule_loader.CompoundBranch] | None:
+) -> tuple[re.Match[str], Any] | None:
     for branch in rule.pattern.branches:
         m = branch.regex.search(text)
         if m:
@@ -85,9 +91,10 @@ def _compound_match(
 
 
 def _actual_for_fixture(
-    loaded: rule_loader.LoadedRules,
-    rule: rule_loader.Rule,
-    fixture: rule_loader.Fixture,
+    rule_loader: Any,
+    loaded: Any,
+    rule: Any,
+    fixture: Any,
 ) -> dict[str, Any]:
     text = fixture.text
     contexts = _surface_context(fixture.surface)
@@ -131,7 +138,41 @@ def _matches_expected(actual: dict[str, Any], expected: dict[str, Any]) -> tuple
     return True, ""
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Run Evidence-Gate v2 fixtures against hummbl-production rule_loader.py.",
+    )
+    parser.add_argument(
+        "--rule-loader-path",
+        type=Path,
+        help=(
+            "Path to hummbl-production root or scripts/rule_loader.py. "
+            "Defaults to HUMMBL_PRODUCTION_ROOT or sibling ../hummbl-production."
+        ),
+    )
+    parser.add_argument(
+        "--skip-missing-loader",
+        action="store_true",
+        help="Exit 0 instead of failing when hummbl-production rule_loader.py is unavailable.",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    hummbl_production_root = _find_hummbl_production_root(args.rule_loader_path)
+    if hummbl_production_root is None:
+        message = (
+            "SKIP: cannot find hummbl-production/scripts/rule_loader.py; "
+            "set HUMMBL_PRODUCTION_ROOT or pass --rule-loader-path"
+        )
+        if args.skip_missing_loader:
+            print(message)
+            return 0
+        print(f"ERROR: {message.removeprefix('SKIP: ')}", file=sys.stderr)
+        return 2
+
+    rule_loader = _load_rule_loader(hummbl_production_root)
     loaded = rule_loader.load_library(RULES_DIR)
     failures: list[str] = []
     total = 0
@@ -144,7 +185,7 @@ def main() -> int:
         ]
         for kind, fixture in fixtures:
             total += 1
-            actual = _actual_for_fixture(loaded, rule, fixture)
+            actual = _actual_for_fixture(rule_loader, loaded, rule, fixture)
             ok, reason = _matches_expected(actual, fixture.expects)
             if not ok:
                 failures.append(
@@ -160,10 +201,9 @@ def main() -> int:
 
     print(f"PASS: {total} fixtures across {len(loaded.rules)} rules")
     print(f"rules_dir={RULES_DIR}")
-    print(f"loader={HUMMBL_PRODUCTION_ROOT / 'scripts' / 'rule_loader.py'}")
+    print(f"loader={hummbl_production_root / 'scripts' / 'rule_loader.py'}")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

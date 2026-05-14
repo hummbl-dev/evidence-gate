@@ -90,6 +90,16 @@ Full fixture execution currently depends on the private
 sibling checkout or by setting `HUMMBL_PRODUCTION_ROOT`; GitHub-hosted fixture
 execution is tracked separately in issue #4.
 
+You can also pass an explicit loader location:
+
+```bash
+python scripts/run_rule_fixtures.py --rule-loader-path ../hummbl-production
+python scripts/run_rule_fixtures.py --rule-loader-path ../hummbl-production/scripts/rule_loader.py
+```
+
+CI uses `--skip-missing-loader` so public syntax checks can run without access
+to the private loader repository.
+
 ## Origin
 
 Authoring split (codex c+d after claude-code Stage-2 schema + (b) loader).
