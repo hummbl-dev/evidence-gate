@@ -38,6 +38,9 @@ jobs:
       - name: Compile fixture harness
         run: python -m py_compile scripts/run_rule_fixtures.py
 
+      - name: Exercise fixture harness without private loader
+        run: python scripts/run_rule_fixtures.py --skip-missing-loader
+
       - name: Parse rule TOML files
         shell: python
         run: |
