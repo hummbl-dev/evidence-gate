@@ -78,3 +78,8 @@ No PyYAML, no third-party runtime dependencies. Loader is `tomllib` (Python
 Authoring split (codex c+d after claude-code Stage-2 schema + (b) loader).
 See `docs/evidence-gate-v2-schema.md` § Cross-Check Trail for the full
 multi-stage history with bus receipts.
+
+## Repository Health
+
+See [REPO_HEALTH.md](docs/REPO_HEALTH.md) for the authoritative repository
+health contract, validation commands, and branch-protection expectations.
