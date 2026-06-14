@@ -1,6 +1,11 @@
 # Evidence-Gate
 
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/hummbl-dev/evidence-gate/main)](https://github.com/hummbl-dev/evidence-gate/commits/main)
+
 Pre-publish source-verification rule library for HUMMBL governance content.
+
+Learn more at [hummbl.io](https://hummbl.io).
 
 This repo is the **canonical home** for the Evidence-Gate v2 rule library
 consumed by `hummbl-production/scripts/case_study_verify.py` and other
