@@ -1,0 +1,25 @@
+name: Evidence-Gate Fixtures
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  fixtures:
+    runs-on: self-hosted
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run fixture harness
+        shell: powershell
+        run: |
+          $productionRoot = "C:\Users\Owner\PROJECTS\hummbl-production"
+          if (-not (Test-Path (Join-Path $productionRoot "scripts\rule_loader.py"))) {
+            throw "hummbl-production rule_loader.py not found at $productionRoot"
+          }
+          $env:HUMMBL_PRODUCTION_ROOT = $productionRoot
+          python scripts/run_rule_fixtures.py

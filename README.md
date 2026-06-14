@@ -1,6 +1,11 @@
 # Evidence-Gate
 
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/hummbl-dev/evidence-gate/main)](https://github.com/hummbl-dev/evidence-gate/commits/main)
+
 Pre-publish source-verification rule library for HUMMBL governance content.
+
+Learn more at [hummbl.io](https://hummbl.io).
 
 This repo is the **canonical home** for the Evidence-Gate v2 rule library
 consumed by `hummbl-production/scripts/case_study_verify.py` and other
@@ -105,3 +110,8 @@ to the private loader repository.
 Authoring split (codex c+d after claude-code Stage-2 schema + (b) loader).
 See `docs/evidence-gate-v2-schema.md` § Cross-Check Trail for the full
 multi-stage history with bus receipts.
+
+## Repository Health
+
+See [REPO_HEALTH.md](docs/REPO_HEALTH.md) for the authoritative repository
+health contract, validation commands, and branch-protection expectations.
