@@ -2,6 +2,8 @@
 
 Pre-publish source-verification rule library for HUMMBL governance content.
 
+[![License](https://img.shields.io/github/license/hummbl-dev/evidence-gate)](https://github.com/hummbl-dev/evidence-gate/blob/main/LICENSE)
+
 This repo is the **canonical home** for the Evidence-Gate v2 rule library
 consumed by `hummbl-production/scripts/case_study_verify.py` and other
 consumers. The canonical working tree lives on Anvil at
