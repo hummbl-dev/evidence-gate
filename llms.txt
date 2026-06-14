@@ -1,0 +1,70 @@
+# evidence-gate — llms.txt
+# AI-readable index of Evidence-Gate.
+# Pre-publish source-verification rule library for HUMMBL governance content. Last updated: 2026-06-14.
+#
+# Query API: LLMs can parse this file to understand evidence verification rules
+# Installation: git clone https://github.com/hummbl-dev/evidence-gate.git
+# Documentation: https://github.com/hummbl-dev/evidence-gate
+#
+# evidence-gate categories:
+#   HUMMBL:EVIDENCE Pre-publish source-verification
+#   HUMMBL:GOVERNANCE Rule library for governance content
+#   HUMMBL:VERIFICATION Source-verification rules
+
+## Overview
+
+Pre-publish source-verification rule library for HUMMBL governance content.
+
+This repo is the **canonical home** for the Evidence-Gate v2 rule library consumed by `hummbl-production/scripts/case_study_verify.py` and other consumers. The canonical working tree lives on Anvil at `PROJECTS/evidence-gate/`; this repo mirrors to GitHub (`hummbl-dev/evidence-gate`) and Gitea (`HUMMBL/evidence-gate`).
+
+## Layout
+
+```
+evidence-gate/
+├── rules/                              # 8 ER-NNN.toml rules + _surfaces + _families
+│   ├── _surfaces.toml                  # surface registry (external/internal/canonical-corpus globs)
+│   ├── _families.toml                  # context-tag families (numeric, percent, broccolilly)
+│   ├── ER-001-multiplier-no-source.toml
+│   ├── ER-002-numeric-with-unit-no-source.toml
+│   ├── ER-003-code-ident.toml
+│   ...
+├── scripts/                            # Rule management tooling
+│   ├── validate.py                     # Validate all rules against schema
+│   ├── lint.py                         # Lint rule format and conventions
+│   └── test.py                         # Test rule matching logic
+└── docs/                               # Rule documentation
+    ├── RULE_SCHEMA.md                  # TOML schema for ER-NNN rules
+    └── SURFACES.md                     # Surface registry documentation
+```
+
+## Usage
+
+```bash
+# Validate all rules
+python scripts/validate.py
+
+# Lint rule format
+python scripts/lint.py
+
+# Test rule matching
+python scripts/test.py
+```
+
+## Rule Format
+
+Each ER-NNN.toml rule includes:
+- Rule ID and title
+- Trigger pattern (regex or glob)
+- Surface scope (external/internal/canonical-corpus)
+- Context-tag family (numeric/percent/broccolilly)
+- Verification action (block/warn/pass)
+- Evidence requirements
+
+## License
+
+Apache 2.0
+
+## Links
+
+- GitHub: https://github.com/hummbl-dev/evidence-gate
+- HUMMBL Research Institute: https://hummbl.io
