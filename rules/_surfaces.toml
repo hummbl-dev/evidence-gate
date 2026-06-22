@@ -7,6 +7,12 @@ relative_to_self = "../../hummbl-production"
 [[roots]]
 discover = { nearest_ancestor_with = "hummbl-production/.git" }
 
+# Fallback root for standalone evidence-gate CI (issue #4): resolves to the
+# evidence-gate repo root itself so that load_library's resolve_root succeeds
+# without requiring the private hummbl-production checkout.
+[[roots]]
+relative_to_self = ".."
+
 [surfaces]
 external = [
   "hummbl-production/web/**/*.html",

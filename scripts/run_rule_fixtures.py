@@ -5,6 +5,12 @@ This is the Arbiter-side harness for the codex-owned (c)+(d) lane after
 hummbl-production PR #225. It intentionally reuses the merged
 ``hummbl-production/scripts/rule_loader.py`` contract instead of forking a
 second parser.
+
+The rule loader is vendored into ``scripts/rule_loader.py`` (see issue #4)
+so that CI does not require cross-repo access to the private
+hummbl-production repository. If ``HUMMBL_PRODUCTION_ROOT`` is set or a
+sibling ``../hummbl-production`` checkout is present, the upstream loader
+is used instead to stay aligned with the canonical source.
 """
 
 from __future__ import annotations
@@ -20,6 +26,7 @@ from typing import Any
 
 ARB_ROOT = Path(__file__).resolve().parent.parent
 RULES_DIR = ARB_ROOT / "rules"
+SCRIPTS_DIR = Path(__file__).resolve().parent
 
 
 def _find_hummbl_production_root(rule_loader_path: Path | None = None) -> Path | None:
@@ -42,8 +49,19 @@ def _find_hummbl_production_root(rule_loader_path: Path | None = None) -> Path |
     return None
 
 
-def _load_rule_loader(hummbl_production_root: Path) -> Any:
-    sys.path.insert(0, str(hummbl_production_root / "scripts"))
+def _load_rule_loader(hummbl_production_root: Path | None) -> Any:
+    """Load the rule_loader module.
+
+    Prefers the upstream hummbl-production copy when available (so local
+    development stays aligned with the canonical source). Falls back to the
+    vendored copy in ``scripts/rule_loader.py`` so that CI works without
+    cross-repo access (issue #4).
+    """
+    if hummbl_production_root is not None:
+        sys.path.insert(0, str(hummbl_production_root / "scripts"))
+        return importlib.import_module("rule_loader")
+    # Vendored fallback — same directory as this harness.
+    sys.path.insert(0, str(SCRIPTS_DIR))
     return importlib.import_module("rule_loader")
 
 
@@ -161,16 +179,24 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     hummbl_production_root = _find_hummbl_production_root(args.rule_loader_path)
-    if hummbl_production_root is None:
-        message = (
-            "SKIP: cannot find hummbl-production/scripts/rule_loader.py; "
-            "set HUMMBL_PRODUCTION_ROOT or pass --rule-loader-path"
-        )
-        if args.skip_missing_loader:
-            print(message)
-            return 0
-        print(f"ERROR: {message.removeprefix('SKIP: ')}", file=sys.stderr)
-        return 2
+    loader_source: str
+    if hummbl_production_root is not None:
+        loader_source = str(hummbl_production_root / "scripts" / "rule_loader.py")
+    else:
+        # Fall back to the vendored copy (issue #4) — no cross-repo access needed.
+        vendored = SCRIPTS_DIR / "rule_loader.py"
+        if not vendored.is_file():
+            message = (
+                "SKIP: cannot find rule_loader.py (neither upstream "
+                "hummbl-production nor vendored scripts/rule_loader.py); "
+                "set HUMMBL_PRODUCTION_ROOT or pass --rule-loader-path"
+            )
+            if args.skip_missing_loader:
+                print(message)
+                return 0
+            print(f"ERROR: {message.removeprefix('SKIP: ')}", file=sys.stderr)
+            return 2
+        loader_source = str(vendored)
 
     rule_loader = _load_rule_loader(hummbl_production_root)
     loaded = rule_loader.load_library(RULES_DIR)
@@ -201,7 +227,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"PASS: {total} fixtures across {len(loaded.rules)} rules")
     print(f"rules_dir={RULES_DIR}")
-    print(f"loader={hummbl_production_root / 'scripts' / 'rule_loader.py'}")
+    print(f"loader={loader_source}")
     return 0
 
 
