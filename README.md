@@ -1,8 +1,8 @@
 # evidence-gate (archived)
 
-**Content consolidated into [hummbl-dev/hummbl-papers](https://github.com/hummbl-dev/hummbl-papers).**
+**Content consolidated into [hummbl-dev/hummbl-toolkit](https://github.com/hummbl-dev/hummbl-toolkit).**
 
-This repo is archived. All content has been moved to `hummbl-papers/frameworks/unified-tier` in the [hummbl-papers](https://github.com/hummbl-dev/hummbl-papers) repository.
+This repo is archived. All content has been moved to `evidence-gate/` in the [hummbl-toolkit](https://github.com/hummbl-dev/hummbl-toolkit) repository.
 
 See [README_original.md](README_original.md) for the original README.
 
