@@ -1,0 +1,46 @@
+# hummbl.repo.yaml — evidence-gate
+# HUMMBL Repo Standard v0.1
+
+schema: "hummbl-repo-manifest@0.1"
+
+repo:
+  full_name: "hummbl-dev/evidence-gate"
+  name: "evidence-gate"
+  visibility: "public"
+  default_branch: "main"
+  status: "archived"
+
+purpose:
+  type: "archived"
+  summary: "Archived repository. See README.md for original purpose."
+  source_of_record: "git"
+
+authority:
+  steward: "HUMMBL Research Institute"
+  approving_human: "Reuben Bowlby"
+
+governance:
+  agents_required: false
+  krineia_required: true
+  receipts_dir: "_receipts/"
+  model_provider_neutral: true
+
+validation:
+  command: "echo 'archived repo — no validation required'"
+  required_before_merge: false
+  required_before_release: false
+
+docs:
+  krineia: "KRINEIA.md"
+
+krineia:
+  manifest: "KRINEIA.md"
+  chains:
+    primary:
+      chain_id: "evidence-gate-primary"
+      storage: "_receipts/krineia/primary.jsonl"
+      genesis_policy: "repo_bootstrap"
+      hash_algorithm: "sha256"
+      canonicalization: "json.dumps(sort_keys=True,separators=(',',':'))"
+  operators_allowed: ["append", "project", "cut"]
+  operators_forbidden: ["update", "delete", "rewrite", "summarize_and_replace", "score_and_train"]
